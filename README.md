@@ -1,50 +1,54 @@
 # 🔢 2048
 
-Join the numbers and get to 2048!
+[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/zos-apps/2048/releases)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![Docs](https://img.shields.io/badge/docs-online-purple.svg)](https://zos-apps.github.io/2048)
 
-## Category
-`games`
+> Join the numbers and get to 2048!
+
+**[Documentation](https://zos-apps.github.io/2048)** • **[App Store](https://zos-apps.github.io/app-store)** • **[All Apps](https://github.com/zos-apps)**
 
 ## Installation
 
 ```bash
-npm install @anthropic/2048
-# or
-pnpm add @anthropic/2048
+npm install github:zos-apps/2048
 ```
+
+Or install via the [zOS App Store](https://zos-apps.github.io/app-store).
 
 ## Usage
 
 ```tsx
-import App from '@anthropic/2048';
+import 2048 from '@zos-apps/2048';
 
-function MyComponent() {
-  return <App onClose={() => console.log('closed')} />;
+function App() {
+  return <2048 />;
 }
 ```
 
-## Development
+## Features
 
-```bash
-# Install dependencies
-pnpm install
+- Native zOS window integration
+- Dark mode support
 
-# Build
-pnpm build
+- Context menu actions
+- Menu bar integration
 
-# Watch mode
-pnpm dev
-```
+## Category
 
-## zOS Integration
+**Games**
 
-This app is designed to run within zOS, a web-based operating system. It follows the zOS app specification with:
+## Permissions
 
-- Standalone React component
-- TypeScript support
-- Tailwind CSS styling
-- Window management integration
+- `storage.local`
+
+## Links
+
+- [Documentation](https://zos-apps.github.io/2048)
+- [GitHub Repository](https://github.com/zos-apps/2048)
+- [Report Issues](https://github.com/zos-apps/2048/issues)
+- [All zOS Apps](https://github.com/zos-apps)
 
 ## License
 
-MIT
+MIT © [Hanzo AI](https://hanzo.ai)

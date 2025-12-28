@@ -20,7 +20,25 @@
         "height": 500
       },
       "resizable": true
-    }
+    },
+    "about": "The classic 2048 puzzle game. Slide tiles to combine numbers and reach 2048!",
+    "help": [
+      "Use arrow keys or swipe to move tiles",
+      "Combine same numbers to double them",
+      "Try to reach 2048!"
+    ],
+    "docs": "https://zos-apps.github.io/2048",
+    "site": "https://github.com/zos-apps/2048",
+    "shortcuts": [
+      "↑↓←→ Move tiles",
+      "N New game"
+    ],
+    "features": [
+      "Smooth animations",
+      "Score tracking",
+      "Best score saved",
+      "Responsive touch/keyboard controls"
+    ]
   },
   "scripts": {
     "build": "tsup",
@@ -53,5 +71,13 @@
     "2048",
     "macos",
     "desktop"
-  ]
+  ],
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/sponsors/zos-apps"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  }
 }

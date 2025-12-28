@@ -1,3 +1,3 @@
 title: 2048
-description: Join the numbers and get to 2048!
-theme: jekyll-theme-minimal
+description: The classic 2048 puzzle game. Slide tiles to combine numbers and reach 2048!
+theme: jekyll-theme-cayman

@@ -1,8 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
-
-interface Game2048Props {
-  onClose: () => void;
-}
+import { useState, useCallback } from 'react';
+import type { AppProps } from '@zos-apps/config';
+import { useKeyboard, useHighScore } from '@zos-apps/config';
 
 type Grid = number[][];
 
@@ -21,64 +19,71 @@ const TILE_COLORS: Record<number, string> = {
   2048: 'bg-yellow-500 text-white',
 };
 
-const Game2048: React.FC<Game2048Props> = ({ onClose }) => {
+const DIRECTION_KEYS = {
+  ArrowUp: 'up', w: 'up', W: 'up',
+  ArrowDown: 'down', s: 'down', S: 'down',
+  ArrowLeft: 'left', a: 'left', A: 'left',
+  ArrowRight: 'right', d: 'right', D: 'right',
+} as const;
+
+type Direction = 'up' | 'down' | 'left' | 'right';
+
+function initGrid(): Grid {
+  const grid: Grid = Array(4).fill(null).map(() => Array(4).fill(0));
+  addRandomTile(grid);
+  addRandomTile(grid);
+  return grid;
+}
+
+function addRandomTile(grid: Grid): boolean {
+  const empty: [number, number][] = [];
+  for (let r = 0; r < 4; r++) {
+    for (let c = 0; c < 4; c++) {
+      if (grid[r][c] === 0) empty.push([r, c]);
+    }
+  }
+  if (empty.length === 0) return false;
+  const [r, c] = empty[Math.floor(Math.random() * empty.length)];
+  grid[r][c] = Math.random() < 0.9 ? 2 : 4;
+  return true;
+}
+
+function canMove(grid: Grid): boolean {
+  for (let r = 0; r < 4; r++) {
+    for (let c = 0; c < 4; c++) {
+      if (grid[r][c] === 0) return true;
+      if (c < 3 && grid[r][c] === grid[r][c + 1]) return true;
+      if (r < 3 && grid[r][c] === grid[r + 1][c]) return true;
+    }
+  }
+  return false;
+}
+
+function slide(row: number[]): { row: number[]; score: number } {
+  let arr = row.filter(x => x !== 0);
+  let scoreGain = 0;
+  
+  for (let i = 0; i < arr.length - 1; i++) {
+    if (arr[i] === arr[i + 1]) {
+      arr[i] *= 2;
+      scoreGain += arr[i];
+      arr.splice(i + 1, 1);
+    }
+  }
+  
+  while (arr.length < 4) arr.push(0);
+  return { row: arr, score: scoreGain };
+}
+
+const Game2048: React.FC<AppProps> = ({ onClose: _onClose }) => {
   const [grid, setGrid] = useState<Grid>(() => initGrid());
   const [score, setScore] = useState(0);
-  const [bestScore, setBestScore] = useState(() => {
-    const saved = localStorage.getItem('zos-2048-best');
-    return saved ? parseInt(saved) : 0;
-  });
   const [gameOver, setGameOver] = useState(false);
   const [won, setWon] = useState(false);
+  
+  const { highScore, updateHighScore } = useHighScore('2048');
 
-  function initGrid(): Grid {
-    const grid: Grid = Array(4).fill(null).map(() => Array(4).fill(0));
-    addRandomTile(grid);
-    addRandomTile(grid);
-    return grid;
-  }
-
-  function addRandomTile(grid: Grid): boolean {
-    const empty: [number, number][] = [];
-    for (let r = 0; r < 4; r++) {
-      for (let c = 0; c < 4; c++) {
-        if (grid[r][c] === 0) empty.push([r, c]);
-      }
-    }
-    if (empty.length === 0) return false;
-    const [r, c] = empty[Math.floor(Math.random() * empty.length)];
-    grid[r][c] = Math.random() < 0.9 ? 2 : 4;
-    return true;
-  }
-
-  function canMove(grid: Grid): boolean {
-    for (let r = 0; r < 4; r++) {
-      for (let c = 0; c < 4; c++) {
-        if (grid[r][c] === 0) return true;
-        if (c < 3 && grid[r][c] === grid[r][c + 1]) return true;
-        if (r < 3 && grid[r][c] === grid[r + 1][c]) return true;
-      }
-    }
-    return false;
-  }
-
-  function slide(row: number[]): { row: number[]; score: number } {
-    let arr = row.filter(x => x !== 0);
-    let scoreGain = 0;
-    
-    for (let i = 0; i < arr.length - 1; i++) {
-      if (arr[i] === arr[i + 1]) {
-        arr[i] *= 2;
-        scoreGain += arr[i];
-        arr.splice(i + 1, 1);
-      }
-    }
-    
-    while (arr.length < 4) arr.push(0);
-    return { row: arr, score: scoreGain };
-  }
-
-  const move = useCallback((direction: 'up' | 'down' | 'left' | 'right') => {
+  const move = useCallback((direction: Direction) => {
     if (gameOver) return;
 
     const newGrid = grid.map(row => [...row]);
@@ -86,8 +91,8 @@ const Game2048: React.FC<Game2048Props> = ({ onClose }) => {
     let moved = false;
 
     const processRow = (row: number[]): number[] => {
-      const { row: newRow, score } = slide(row);
-      totalScore += score;
+      const { row: newRow, score: rowScore } = slide(row);
+      totalScore += rowScore;
       if (JSON.stringify(row) !== JSON.stringify(newRow)) moved = true;
       return newRow;
     };
@@ -119,10 +124,7 @@ const Game2048: React.FC<Game2048Props> = ({ onClose }) => {
       setGrid(newGrid);
       setScore(s => {
         const newScore = s + totalScore;
-        if (newScore > bestScore) {
-          setBestScore(newScore);
-          localStorage.setItem('zos-2048-best', newScore.toString());
-        }
+        updateHighScore(newScore);
         return newScore;
       });
 
@@ -136,26 +138,12 @@ const Game2048: React.FC<Game2048Props> = ({ onClose }) => {
         setGameOver(true);
       }
     }
-  }, [grid, gameOver, won, bestScore]);
+  }, [grid, gameOver, won, updateHighScore]);
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      const keyMap: Record<string, 'up' | 'down' | 'left' | 'right'> = {
-        ArrowUp: 'up', w: 'up', W: 'up',
-        ArrowDown: 'down', s: 'down', S: 'down',
-        ArrowLeft: 'left', a: 'left', A: 'left',
-        ArrowRight: 'right', d: 'right', D: 'right',
-      };
-      const dir = keyMap[e.key];
-      if (dir) {
-        e.preventDefault();
-        move(dir);
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [move]);
+  // Direction keys
+  useKeyboard(DIRECTION_KEYS, (action) => {
+    move(action as Direction);
+  }, { preventDefault: true });
 
   const restart = () => {
     setGrid(initGrid());
@@ -177,7 +165,7 @@ const Game2048: React.FC<Game2048Props> = ({ onClose }) => {
             </div>
             <div className="bg-[#bbada0] rounded px-3 py-1 text-center">
               <div className="text-xs text-[#eee4da] uppercase">Best</div>
-              <div className="text-xl font-bold text-white">{bestScore}</div>
+              <div className="text-xl font-bold text-white">{highScore}</div>
             </div>
           </div>
         </div>
@@ -212,6 +200,9 @@ const Game2048: React.FC<Game2048Props> = ({ onClose }) => {
           {gameOver && (
             <div className="absolute inset-0 bg-white/80 rounded-lg flex flex-col items-center justify-center">
               <div className="text-3xl font-bold text-[#776e65] mb-4">Game Over!</div>
+              {score === highScore && score > 0 && (
+                <div className="text-lg text-[#776e65] mb-2">🏆 New High Score!</div>
+              )}
               <button
                 onClick={restart}
                 className="px-6 py-3 bg-[#8f7a66] text-white rounded font-bold hover:bg-[#9f8b77]"
